@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+/*
+  SommarMatch designsystem.
+  Här bor appens "DNA": färger, teckensnitt och rundningar.
+  Ändrar vi något här slår det igenom på hela sajten.
+*/
+
+@theme inline {
+  /* Färger – varm sommarkänsla */
+  --color-sol: #ff8a00;        /* Huvudfärg: orange */
+  --color-sol-ljus: #ffb347;   /* Ljusare gul-orange */
+  --color-sol-mork: #f25c05;   /* Mörkare orange för hover */
+
+  --color-natt: #0c0c0e;       /* Nästan svart – bakom jobbflödet */
+  --color-natt-mjuk: #18181b;  /* Mjukare mörk yta */
+
+  --color-papper: #fbfaf7;     /* Mjukt benvitt – ljus bakgrund */
+  --color-bleck: #1f2937;      /* Mörkgrå text (ej helsvart) */
+  --color-dis: #6b7280;        /* Ljusgrå sekundärtext */
+
+  --color-frisk: #16a34a;      /* Lugn grön – bekräftelser */
+
+  /* Teckensnitt */
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  /* Rundade hörn */
+  --radius-mjuk: 1.25rem;
+}
+
+:root {
+  --background: #fbfaf7;
+  --foreground: #1f2937;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Återanvändbar solig knapp-gradient */
+.bg-sol-gradient {
+  background-image: linear-gradient(135deg, var(--color-sol-ljus), var(--color-sol-mork));
+}
+
+/* Döljer scrollbaren men behåller scrollning (för jobbflödet senare) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
