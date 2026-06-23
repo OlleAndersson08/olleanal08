@@ -9,7 +9,7 @@ import Knapp from "@/components/Knapp";
 
 export default function Startsida() {
   return (
-    <main className="relative flex-1 overflow-hidden bg-papper">
+    <main className="relative flex-1 overflow-x-hidden bg-papper">
       {/* Mjuk färgglöd i bakgrunden för premium-känsla */}
       <div
         aria-hidden
