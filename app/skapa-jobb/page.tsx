@@ -3,11 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import Falt from "@/components/Falt";
+import Knapp from "@/components/Knapp";
 
 /*
-  Skapa jobb – företagets sida för att lägga upp en annons.
-  När man trycker "Publicera jobb" visas en bekräftelse.
-  (Jobbet sparas inte i någon databas än – det kopplar vi på senare.)
+  Skapa jobb (mörkt tema) – företagets annons.
+  Bekräftelsevy med fest-känsla efter publicering.
+  (Jobbet sparas inte i databas än.)
 */
 
 export default function SkapaJobb() {
@@ -19,35 +20,34 @@ export default function SkapaJobb() {
     setPublicerat(true);
   }
 
-  // Bekräftelsevy efter publicering
   if (publicerat) {
     return (
-      <main className="flex-1 bg-papper">
-        <div className="mx-auto flex min-h-[100svh] max-w-md flex-col items-center justify-center px-6 text-center">
-          <div className="bg-frisk/10 flex h-20 w-20 items-center justify-center rounded-full text-4xl">
-            ✅
+      <main className="relative flex-1 overflow-hidden bg-bg">
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="anim-float absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 rounded-full bg-frisk/25 blur-[90px]" />
+        </div>
+        <div className="relative mx-auto flex min-h-[100svh] max-w-md flex-col items-center justify-center px-6 text-center">
+          <div className="anim-scale flex h-24 w-24 items-center justify-center rounded-full bg-frisk/15 text-5xl">
+            🎉
           </div>
-          <h1 className="mt-5 text-2xl font-extrabold tracking-tight text-bleck">
+          <h1 className="anim-up mt-5 text-2xl font-extrabold tracking-tight" style={{ animationDelay: "0.1s" }}>
             Jobbet är publicerat!
           </h1>
-          <p className="mt-2 text-dis">
-            {titel ? `"${titel}"` : "Din annons"} syns nu för ungdomar i flödet.
-            Vi hör av oss när någon visar intresse.
+          <p className="anim-up mt-2 text-mute" style={{ animationDelay: "0.18s" }}>
+            {titel ? `”${titel}”` : "Din annons"} syns nu för unga i flödet. Vi
+            pingar dig så fort någon visar intresse.
           </p>
-          <div className="mt-8 flex w-full flex-col gap-3">
-            <Link
-              href="/jobb"
-              className="bg-sol-gradient w-full rounded-full px-7 py-4 text-lg font-semibold text-white shadow-lg shadow-orange-500/30 transition hover:brightness-105 active:scale-[0.97]"
-            >
+          <div className="anim-up mt-8 flex w-full flex-col gap-3" style={{ animationDelay: "0.26s" }}>
+            <Knapp href="/jobb" className="w-full text-lg">
               Se hur det ser ut i flödet
-            </Link>
+            </Knapp>
             <button
               type="button"
               onClick={() => {
                 setPublicerat(false);
                 setTitel("");
               }}
-              className="w-full rounded-full border border-black/10 bg-white px-7 py-4 font-semibold text-bleck transition hover:bg-black/[0.03]"
+              className="glas w-full rounded-2xl px-7 py-4 font-semibold transition hover:bg-white/10"
             >
               Lägg upp ett till jobb
             </button>
@@ -58,27 +58,25 @@ export default function SkapaJobb() {
   }
 
   return (
-    <main className="flex-1 bg-papper">
-      <div className="mx-auto flex min-h-[100svh] max-w-md flex-col px-6 py-6">
+    <main className="relative flex-1 overflow-x-hidden bg-bg">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="anim-float absolute -top-20 -right-16 h-72 w-72 rounded-full bg-violet/20 blur-[90px]" />
+      </div>
+
+      <div className="relative mx-auto flex min-h-[100svh] max-w-md flex-col px-6 py-6">
         <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="text-2xl text-dis transition hover:text-bleck"
-            aria-label="Tillbaka"
-          >
+          <Link href="/" className="text-2xl text-mute transition hover:text-text" aria-label="Tillbaka">
             ←
           </Link>
-          <h1 className="text-2xl font-extrabold tracking-tight text-bleck">
-            Nytt jobb
-          </h1>
+          <h1 className="text-2xl font-extrabold tracking-tight">Nytt jobb</h1>
         </div>
 
-        <form onSubmit={hanteraSkicka} className="mt-6 flex flex-col gap-4">
-          {/* Uppladdningsruta för video/bild */}
-          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-black/15 bg-white py-10 text-center">
+        <form onSubmit={hanteraSkicka} className="anim-up mt-6 flex flex-col gap-4">
+          {/* Uppladdningsruta */}
+          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/15 bg-white/5 py-10 text-center transition hover:bg-white/[0.07]">
             <span className="text-3xl">📷</span>
-            <p className="font-semibold text-bleck">Lägg till video eller bild</p>
-            <p className="text-sm text-dis">Visa hur det är att jobba hos er</p>
+            <p className="font-semibold">Lägg till video eller bild</p>
+            <p className="text-sm text-mute">Visa hur det är att jobba hos er</p>
           </div>
 
           <Falt
@@ -91,14 +89,12 @@ export default function SkapaJobb() {
           />
 
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-bleck">
-              Beskrivning
-            </span>
+            <span className="mb-1.5 block text-sm font-semibold text-text">Beskrivning</span>
             <textarea
               required
               rows={4}
               placeholder="Berätta kort om jobbet och vem ni söker."
-              className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3.5 text-bleck outline-none transition placeholder:text-dis focus:border-sol focus:ring-2 focus:ring-sol/30"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 text-text outline-none transition placeholder:text-mute focus:border-rose/60 focus:ring-2 focus:ring-rose/25"
             />
           </label>
 
@@ -107,12 +103,9 @@ export default function SkapaJobb() {
             <Falt etikett="Ort" ikon="📍" required placeholder="Stockholm" />
           </div>
 
-          <button
-            type="submit"
-            className="bg-sol-gradient mt-2 w-full rounded-full px-7 py-4 text-lg font-semibold text-white shadow-lg shadow-orange-500/30 transition hover:brightness-105 active:scale-[0.97]"
-          >
+          <Knapp type="submit" className="mt-2 w-full text-lg">
             Publicera jobb
-          </button>
+          </Knapp>
         </form>
       </div>
     </main>

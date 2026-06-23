@@ -9,14 +9,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SommarMatch – Hitta ditt sommarjobb genom att svepa",
+  title: "SommarMatch – Svep dig till sommarjobbet",
   description:
-    "TikTok för sommarjobb, extrajobb och första jobbet. Inga CV. Inget krångel. Svep, hitta, sök.",
+    "TikTok för sommarjobb, extrajobb och första jobbet. Inga CV. Inget krångel. Svep, matcha, sök på en sekund.",
 };
 
 // Mobil först: gör att sajten känns som en riktig app i mobilen.
 export const viewport: Viewport = {
-  themeColor: "#ff8a00",
+  themeColor: "#08080c",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -29,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="sv" className={`${inter.variable} h-full`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-bg text-text">{children}</body>
     </html>
   );
 }

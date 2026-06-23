@@ -4,12 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Falt from "@/components/Falt";
+import Knapp from "@/components/Knapp";
 
 /*
-  Registreringssidan – skapa konto.
-  Man väljer roll (Ungdom eller Företag). När man trycker "Skapa konto"
-  skickas man vidare: ungdomar till jobbflödet, företag till skapa-jobb.
-  (Ingen databas än – vi sparar inget riktigt konto ännu.)
+  Registreringssidan (mörkt tema).
+  Välj roll (Ungdom/Företag) → skickas vidare till rätt startpunkt.
+  (Ingen databas än – inget riktigt konto sparas ännu.)
 */
 
 type Roll = "ungdom" | "foretag";
@@ -20,41 +20,40 @@ export default function Registrera() {
 
   function hanteraSkicka(e: React.FormEvent) {
     e.preventDefault();
-    // Senare: spara kontot i databasen. Nu skickar vi bara vidare.
     router.push(roll === "ungdom" ? "/jobb" : "/skapa-jobb");
   }
 
   return (
-    <main className="flex-1 bg-papper">
-      <div className="mx-auto flex min-h-[100svh] max-w-md flex-col px-6 py-6">
-        <Link
-          href="/"
-          className="text-2xl text-dis transition hover:text-bleck"
-          aria-label="Tillbaka"
-        >
+    <main className="relative flex-1 overflow-x-hidden bg-bg">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="anim-float absolute -top-20 -right-16 h-72 w-72 rounded-full bg-rose/25 blur-[90px]" />
+        <div
+          className="anim-float absolute bottom-0 -left-20 h-72 w-72 rounded-full bg-violet/20 blur-[90px]"
+          style={{ animationDelay: "2s" }}
+        />
+      </div>
+
+      <div className="relative mx-auto flex min-h-[100svh] max-w-md flex-col px-6 py-6">
+        <Link href="/" className="text-2xl text-mute transition hover:text-text" aria-label="Tillbaka">
           ←
         </Link>
 
-        <div className="mt-6">
-          <h1 className="text-3xl font-extrabold tracking-tight text-bleck">
+        <div className="anim-up mt-6">
+          <h1 className="text-[2.1rem] font-extrabold leading-tight tracking-tight">
             Skapa konto
           </h1>
-          <p className="mt-1.5 text-dis">
-            Det tar 30 sekunder. Inget CV behövs.
-          </p>
+          <p className="mt-1.5 text-mute">Det tar 30 sekunder. Inget CV behövs.</p>
         </div>
 
         {/* Rollväljare */}
-        <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl bg-black/[0.04] p-1.5">
+        <div className="anim-up mt-6 grid grid-cols-2 gap-1.5 rounded-2xl border border-white/10 bg-white/5 p-1.5" style={{ animationDelay: "0.08s" }}>
           {(["ungdom", "foretag"] as const).map((val) => (
             <button
               key={val}
               type="button"
               onClick={() => setRoll(val)}
-              className={`rounded-xl py-3 text-sm font-semibold transition ${
-                roll === val
-                  ? "bg-white text-bleck shadow"
-                  : "text-dis hover:text-bleck"
+              className={`rounded-xl py-3 text-sm font-bold transition ${
+                roll === val ? "bg-brand text-white shadow-lg" : "text-mute hover:text-text"
               }`}
             >
               {val === "ungdom" ? "🙋 Jag söker jobb" : "🏢 Jag är företag"}
@@ -62,46 +61,22 @@ export default function Registrera() {
           ))}
         </div>
 
-        <form onSubmit={hanteraSkicka} className="mt-6 flex flex-col gap-4">
+        <form onSubmit={hanteraSkicka} className="anim-up mt-6 flex flex-col gap-4" style={{ animationDelay: "0.15s" }}>
           {roll === "foretag" && (
-            <Falt etikett="Företagsnamn" ikon="🏢" placeholder="Café Solsken" />
+            <Falt etikett="Företagsnamn" ikon="🏢" required placeholder="Café Solsken" />
           )}
-          <Falt
-            etikett="E-post"
-            ikon="✉️"
-            type="email"
-            required
-            placeholder="du@exempel.se"
-          />
-          <Falt
-            etikett="Lösenord"
-            ikon="🔒"
-            type="password"
-            required
-            placeholder="Minst 6 tecken"
-            minLength={6}
-          />
-          <Falt
-            etikett="Din ort"
-            ikon="📍"
-            required
-            placeholder="Stockholm"
-          />
+          <Falt etikett="E-post" ikon="✉️" type="email" required placeholder="du@exempel.se" />
+          <Falt etikett="Lösenord" ikon="🔒" type="password" required placeholder="Minst 6 tecken" minLength={6} />
+          <Falt etikett="Din ort" ikon="📍" required placeholder="Stockholm" />
 
-          <button
-            type="submit"
-            className="bg-sol-gradient mt-2 w-full rounded-full px-7 py-4 text-lg font-semibold text-white shadow-lg shadow-orange-500/30 transition hover:brightness-105 active:scale-[0.97]"
-          >
+          <Knapp type="submit" className="mt-2 w-full text-lg">
             Skapa konto
-          </button>
+          </Knapp>
         </form>
 
-        <p className="mt-auto pt-8 text-center text-sm text-dis">
+        <p className="mt-auto pt-8 text-center text-sm text-mute">
           Har du redan ett konto?{" "}
-          <Link
-            href="/logga-in"
-            className="font-semibold text-sol-mork hover:underline"
-          >
+          <Link href="/logga-in" className="font-semibold text-text underline-offset-4 hover:underline">
             Logga in
           </Link>
         </p>

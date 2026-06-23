@@ -1,36 +1,34 @@
 @import "tailwindcss";
 
 /*
-  SommarMatch designsystem.
-  Här bor appens "DNA": färger, teckensnitt och rundningar.
-  Ändrar vi något här slår det igenom på hela sajten.
+  SommarMatch designsystem 2.0 – "Midnatt & solnedgång".
+  Mörk, neon-premium look byggd för att kännas som en social app unga fastnar i.
+  Allt centralt (färger, animationer) bor här.
 */
 
 @theme inline {
-  /* Färger – varm sommarkänsla */
-  --color-sol: #ff8a00;        /* Huvudfärg: orange */
-  --color-sol-ljus: #ffb347;   /* Ljusare gul-orange */
-  --color-sol-mork: #f25c05;   /* Mörkare orange för hover */
+  /* Mörk bas */
+  --color-bg: #08080c;          /* nästan svart, en aning blå */
+  --color-yta: #131320;         /* kort/ytor */
+  --color-yta-2: #1c1c2b;       /* upphöjda ytor */
 
-  --color-natt: #0c0c0e;       /* Nästan svart – bakom jobbflödet */
-  --color-natt-mjuk: #18181b;  /* Mjukare mörk yta */
+  /* Text */
+  --color-text: #f5f5f8;        /* nästan vit */
+  --color-mute: #9a9aae;        /* dämpad grå */
 
-  --color-papper: #fbfaf7;     /* Mjukt benvitt – ljus bakgrund */
-  --color-bleck: #1f2937;      /* Mörkgrå text (ej helsvart) */
-  --color-dis: #6b7280;        /* Ljusgrå sekundärtext */
-
-  --color-frisk: #16a34a;      /* Lugn grön – bekräftelser */
+  /* Varumärkesfärger – solnedgång */
+  --color-flame: #ff7a45;       /* amber/orange */
+  --color-rose: #ff2d78;        /* het rosa-magenta */
+  --color-violet: #8b5cff;      /* elektrisk lila (accent) */
+  --color-frisk: #25d366;       /* vibrerande grön (bekräftelser) */
 
   /* Teckensnitt */
   --font-sans: var(--font-inter), system-ui, sans-serif;
-
-  /* Rundade hörn */
-  --radius-mjuk: 1.25rem;
 }
 
 :root {
-  --background: #fbfaf7;
-  --foreground: #1f2937;
+  --background: #08080c;
+  --foreground: #f5f5f8;
 }
 
 * {
@@ -47,18 +45,157 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overscroll-behavior: none;
 }
 
-/* Återanvändbar solig knapp-gradient */
-.bg-sol-gradient {
-  background-image: linear-gradient(135deg, var(--color-sol-ljus), var(--color-sol-mork));
+/* ---------- Återanvändbara varumärkes-ytor ---------- */
+
+.bg-brand {
+  background-image: linear-gradient(120deg, #ff9d4d 0%, #ff5e62 45%, #ff2d78 100%);
+}
+.bg-brand-soft {
+  background-image: linear-gradient(120deg, rgba(255, 122, 69, 0.16), rgba(255, 45, 120, 0.16));
+}
+.text-brand {
+  background-image: linear-gradient(120deg, #ffb347 0%, #ff5e62 50%, #ff2d78 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-/* Döljer scrollbaren men behåller scrollning (för jobbflödet senare) */
+/* Animerad gradient (rör sig långsamt) */
+.bg-brand-anim {
+  background-image: linear-gradient(120deg, #ffb347, #ff5e62, #ff2d78, #8b5cff, #ff5e62);
+  background-size: 280% 280%;
+  animation: gradient-pan 8s ease infinite;
+}
+.text-brand-anim {
+  background-image: linear-gradient(120deg, #ffb347, #ff5e62, #ff2d78, #8b5cff, #ff5e62);
+  background-size: 280% 280%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-pan 8s ease infinite;
+}
+
+/* Glas-kort */
+.glas {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+/* Döljer scrollbaren men behåller scrollning */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* ---------- Animationer ---------- */
+
+@keyframes gradient-pan {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.anim-up {
+  opacity: 0;
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.anim-in {
+  opacity: 0;
+  animation: fade-in 0.8s ease forwards;
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+.anim-scale {
+  opacity: 0;
+  animation: scale-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Mjukt svävande (bakgrundsblobbar, telefon) */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+.anim-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Pulserande ring (live-prick) */
+@keyframes pulse-ring {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  70% { transform: scale(2.2); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* Hjärt-explosion vid dubbeltryck/gilla */
+@keyframes heart-pop {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  15% { transform: scale(1.25) rotate(-8deg); opacity: 1; }
+  70% { transform: scale(1) rotate(-8deg); opacity: 1; }
+  100% { transform: scale(1.1) rotate(-8deg); opacity: 0; }
+}
+.anim-heart {
+  animation: heart-pop 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Knapp-skenet som sveper */
+@keyframes shine {
+  0% { transform: translateX(-120%); }
+  60%, 100% { transform: translateX(220%); }
+}
+
+/* Glöd-puls på CTA */
+@keyframes glow {
+  0%, 100% { box-shadow: 0 10px 40px -10px rgba(255, 45, 120, 0.6); }
+  50% { box-shadow: 0 14px 55px -8px rgba(255, 122, 69, 0.75); }
+}
+.anim-glow {
+  animation: glow 3s ease-in-out infinite;
+}
+
+/* Marquee (rullande socialt bevis) */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.anim-marquee {
+  animation: marquee 18s linear infinite;
+}
+
+/* Liten studs uppåt vid gilla */
+@keyframes bump {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+.anim-bump {
+  animation: bump 0.45s ease;
+}
+
+/* Respektera användare som vill ha mindre rörelse */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .anim-up, .anim-in, .anim-scale { opacity: 1; }
 }

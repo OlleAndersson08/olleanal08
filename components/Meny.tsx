@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /*
-  Meny = fasta menyn längst ner (som i TikTok/Instagram).
-  Markerar vilken sida man är på just nu.
+  Meny = fast meny längst ner (glas-stil, mörkt tema).
+  Mittknappen lyfter fram "skapa jobb" för företag.
 */
 
 const lankar = [
@@ -18,19 +18,21 @@ export default function Meny() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md">
-      <div className="m-3 flex items-center justify-around rounded-full border border-white/10 bg-natt/90 px-2 py-2 text-white shadow-2xl backdrop-blur-md">
+      <div className="glas m-3 flex items-center justify-around rounded-2xl px-2 py-2 shadow-2xl">
         {lankar.map((lank) => {
           const aktiv = pathname === lank.href;
           return (
             <Link
               key={lank.href}
               href={lank.href}
-              className={`flex flex-1 flex-col items-center gap-0.5 rounded-full py-2 text-xs font-medium transition ${
-                aktiv ? "text-sol-ljus" : "text-white/60 hover:text-white"
+              className={`flex flex-1 flex-col items-center gap-0.5 rounded-xl py-2 text-xs font-semibold transition ${
+                aktiv ? "text-text" : "text-mute hover:text-text"
               }`}
             >
-              <span className="text-lg">{lank.emoji}</span>
-              {lank.text}
+              <span className={`text-lg transition ${aktiv ? "scale-110" : ""}`}>
+                {lank.emoji}
+              </span>
+              <span className={aktiv ? "text-brand" : ""}>{lank.text}</span>
             </Link>
           );
         })}

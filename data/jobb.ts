@@ -14,6 +14,9 @@ export type Jobb = {
   lon: string;
   beskrivning: string;
   taggar: string[];
+  match: number; // hur väl jobbet passar dig, i procent
+  gillar: number; // antal som gillat (socialt bevis)
+  tittarNu: number; // antal som tittar just nu
   // Två färger som bildar bakgrundens toning (gradient) på kortet
   fran: string;
   till: string;
@@ -31,6 +34,9 @@ export const jobb: Jobb[] = [
     beskrivning:
       "Häng med oss i sommar! Vi lär dig allt om kaffe. Glada gäster, bra stämning och fika ingår så klart.",
     taggar: ["Sommarjobb", "Ingen erfarenhet krävs", "Flexibelt"],
+    match: 96,
+    gillar: 1284,
+    tittarNu: 12,
     fran: "#fcd34d",
     till: "#f97316",
   },
@@ -45,6 +51,9 @@ export const jobb: Jobb[] = [
     beskrivning:
       "Extrajobb på helger och kvällar. Perfekt vid sidan av skolan. Vi värdesätter att du är trevlig och pålitlig.",
     taggar: ["Extrajobb", "Helger", "16+"],
+    match: 89,
+    gillar: 842,
+    tittarNu: 7,
     fran: "#fca5a5",
     till: "#ef4444",
   },
@@ -59,6 +68,9 @@ export const jobb: Jobb[] = [
     beskrivning:
       "Sveriges roligaste sommarjobb? Sälj glass i solen, träffa massor av folk och jobba i ett glatt team.",
     taggar: ["Sommarjobb", "Första jobbet", "15+"],
+    match: 93,
+    gillar: 2105,
+    tittarNu: 21,
     fran: "#a5b4fc",
     till: "#6366f1",
   },
@@ -73,6 +85,9 @@ export const jobb: Jobb[] = [
     beskrivning:
       "Gillar du att vara utomhus? Hjälp oss plantera, vattna och hålla parkerna fina under sommaren.",
     taggar: ["Sommarjobb", "Utomhus", "Dagtid"],
+    match: 84,
+    gillar: 567,
+    tittarNu: 4,
     fran: "#86efac",
     till: "#16a34a",
   },
@@ -87,6 +102,9 @@ export const jobb: Jobb[] = [
     beskrivning:
       "Vi söker en pigg person till sommaren. Ta emot beställningar, servera och kör ut pizzor i kvarteret.",
     taggar: ["Sommarjobb", "Kvällar", "Dricks"],
+    match: 91,
+    gillar: 1493,
+    tittarNu: 15,
     fran: "#fdba74",
     till: "#ea580c",
   },
