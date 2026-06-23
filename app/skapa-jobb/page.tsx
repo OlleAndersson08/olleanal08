@@ -65,7 +65,11 @@ export default function SkapaJobb() {
 
       <div className="relative mx-auto flex min-h-[100svh] max-w-md flex-col px-6 py-6">
         <div className="flex items-center gap-3">
-          <Link href="/" className="text-2xl text-mute transition hover:text-text" aria-label="Tillbaka">
+          <Link
+            href="/"
+            className="inline-block text-2xl text-mute transition-all duration-200 hover:-translate-x-0.5 hover:text-text"
+            aria-label="Tillbaka"
+          >
             ←
           </Link>
           <h1 className="text-2xl font-extrabold tracking-tight">Nytt jobb</h1>

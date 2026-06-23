@@ -1,15 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Jobb } from "@/data/jobb";
 
 /*
-  Jobbkort 2.0 – ett jobb som fyller skärmen, som ett TikTok-klipp.
-  Beroende-mekanik:
+  Jobbkort 2.1 – ett jobb som fyller skärmen, som ett TikTok-klipp.
+  Beroende-mekanik + polering:
    - Dubbeltryck var som helst = gilla + hjärt-explosion
    - Actionrad i kanten: gilla, spara, dela
-   - Matchnings-% och "tittar nu" som socialt bevis
-   - Ett-klicks-ansökan som belönar med en grön bekräftelse
+   - Matchnings-% med förklarande undertext (känns personligt)
+   - All text har mjuk skugga = läsbar även på ljusa kort
+   - Innehållet studsar in med fjäder-animation (spring) vid svep
+   - Ett-klicks-ansökan med mjuk lyft-effekt + grön bekräftelse
 */
 
 function formatTal(n: number) {
@@ -22,9 +24,29 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
   const [sparad, setSparad] = useState(false);
   const [intresserad, setIntresserad] = useState(false);
   const [burst, setBurst] = useState(0); // ökar varje gång ett hjärta ska poppa
+  const [synlig, setSynlig] = useState(0); // ökar varje gång kortet svepas in (driver spring)
   const sistaTryck = useRef(0);
+  const sektionRef = useRef<HTMLElement>(null);
 
   const antalGillar = jobb.gillar + (gillad ? 1 : 0);
+  // Förklarar matchningen – mer personligt och trovärdigt
+  const matchText = jobb.avstandKm <= 2 ? "📍 Nära dig" : "✨ Baserat på dina intressen";
+
+  // Spring-animation: studsa in innehållet varje gång kortet blir synligt
+  useEffect(() => {
+    const el = sektionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting && e.intersectionRatio > 0.6) {
+          setSynlig((s) => s + 1);
+        }
+      },
+      { threshold: [0, 0.6, 1] },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   function poppaHjarta() {
     setBurst((b) => b + 1);
@@ -37,10 +59,7 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
 
   function hanteraTryck() {
     const nu = Date.now();
-    if (nu - sistaTryck.current < 300) {
-      // dubbeltryck
-      gilla();
-    }
+    if (nu - sistaTryck.current < 300) gilla(); // dubbeltryck
     sistaTryck.current = nu;
   }
 
@@ -53,6 +72,7 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
 
   return (
     <section
+      ref={sektionRef}
       onClick={hanteraTryck}
       className="relative flex h-[100svh] snap-start snap-always select-none flex-col justify-end overflow-hidden"
       style={{ backgroundImage: `linear-gradient(160deg, ${jobb.fran}, ${jobb.till})` }}
@@ -62,16 +82,21 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
         <span className="text-[8rem] drop-shadow-xl">{jobb.emoji}</span>
       </div>
 
-      {/* Toningar för läsbarhet */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/40 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/35 to-transparent" />
+      {/* Toningar för läsbarhet (starkare i botten där texten bor) */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-black/45 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
 
-      {/* Topp: match + tittar nu */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 pt-5">
-        <span className="flex items-center gap-1.5 rounded-full bg-black/30 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
-          ⚡ {jobb.match}% match
-        </span>
-        <span className="flex items-center gap-1.5 rounded-full bg-black/30 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">
+      {/* Topp: match (med förklaring) + tittar nu */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between px-5 pt-5">
+        <div className="flex flex-col items-start gap-1.5">
+          <span className="flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-xs font-bold text-white backdrop-blur text-skugga-mjuk">
+            ⚡ {jobb.match}% match
+          </span>
+          <span className="rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-semibold text-white/90 backdrop-blur text-skugga-mjuk">
+            {matchText}
+          </span>
+        </div>
+        <span className="flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur text-skugga-mjuk">
           <span className="h-1.5 w-1.5 rounded-full bg-frisk" />
           {jobb.tittarNu} tittar nu
         </span>
@@ -88,12 +113,9 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
 
       {/* Actionrad i höger kant */}
       <div className="absolute bottom-36 right-3 z-30 flex flex-col items-center gap-5">
-        {/* Företagsavatar */}
-        <div className="flex flex-col items-center gap-1">
-          <span className="bg-brand flex h-12 w-12 items-center justify-center rounded-full text-xl ring-2 ring-white/70">
-            {jobb.emoji}
-          </span>
-        </div>
+        <span className="bg-brand flex h-12 w-12 items-center justify-center rounded-full text-xl ring-2 ring-white/70">
+          {jobb.emoji}
+        </span>
 
         <RailKnapp
           aktiv={gillad}
@@ -102,6 +124,7 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
             gilla();
           }}
           label={formatTal(antalGillar)}
+          ariaLabel={gillad ? "Du gillar det här jobbet" : "Gilla jobbet"}
         >
           <Hjarta fylld={gillad} />
         </RailKnapp>
@@ -113,6 +136,7 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
             setSparad((s) => !s);
           }}
           label={sparad ? "Sparad" : "Spara"}
+          ariaLabel={sparad ? "Sparat jobb" : "Spara jobbet"}
         >
           <Bokmarke fylld={sparad} />
         </RailKnapp>
@@ -123,40 +147,41 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
             dela();
           }}
           label="Dela"
+          ariaLabel="Dela jobbet"
         >
           <Dela />
         </RailKnapp>
       </div>
 
-      {/* Innehåll längst ner */}
-      <div className="relative z-10 px-5 pb-28 pr-20 pt-10 text-white">
+      {/* Innehåll längst ner – studsar in med spring varje gång kortet svepas fram */}
+      <div key={synlig} className="spring relative z-10 px-5 pb-28 pr-20 pt-10 text-white">
         <div className="mb-2 flex flex-wrap gap-2">
           {jobb.taggar.map((tagg) => (
             <span
               key={tagg}
-              className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur-sm"
+              className="rounded-full bg-black/25 px-3 py-1 text-xs font-medium backdrop-blur-sm text-skugga-mjuk"
             >
               {tagg}
             </span>
           ))}
         </div>
 
-        <p className="text-sm font-semibold opacity-90">{jobb.foretag}</p>
-        <h2 className="mt-1 text-[1.9rem] font-extrabold leading-tight drop-shadow">
+        <p className="text-sm font-semibold opacity-95 text-skugga">{jobb.foretag}</p>
+        <h2 className="mt-1 text-[1.9rem] font-extrabold leading-tight text-skugga">
           {jobb.titel}
         </h2>
 
-        <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold opacity-95">
+        <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold opacity-95 text-skugga">
           <span>📍 {jobb.avstandKm} km bort</span>
           <span className="opacity-50">·</span>
           <span>💰 {jobb.lon}</span>
         </p>
 
-        <p className="mt-2.5 max-w-sm text-[15px] leading-relaxed opacity-90">
+        <p className="mt-2.5 max-w-sm text-[15px] leading-relaxed opacity-95 text-skugga-mjuk">
           {jobb.beskrivning}
         </p>
 
-        {/* Ansök-knappen */}
+        {/* Ansök-knappen – mjuk lyft-effekt vid hover/aktiv */}
         <button
           type="button"
           onClick={(e) => {
@@ -164,10 +189,10 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
             setIntresserad(true);
           }}
           disabled={intresserad}
-          className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-7 py-4 text-base font-extrabold transition active:scale-[0.97] ${
+          className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-7 py-4 text-base font-extrabold transition-all duration-200 ease-out active:scale-[0.97] ${
             intresserad
               ? "bg-frisk text-white"
-              : "bg-white text-rose shadow-xl hover:brightness-105"
+              : "bg-white text-rose shadow-lg hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-black/30 hover:brightness-105"
           }`}
         >
           {intresserad ? (
@@ -187,26 +212,30 @@ function RailKnapp({
   label,
   onClick,
   aktiv,
+  ariaLabel,
 }: {
   children: React.ReactNode;
   label: string;
   onClick: (e: React.MouseEvent) => void;
   aktiv?: boolean;
+  ariaLabel: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex flex-col items-center gap-1 transition active:scale-90"
+      aria-label={ariaLabel}
+      aria-pressed={aktiv}
+      className="flex flex-col items-center gap-1 transition-transform duration-150 hover:scale-110 active:scale-90"
     >
       <span
         className={`flex h-12 w-12 items-center justify-center rounded-full backdrop-blur transition ${
-          aktiv ? "bg-white/90 text-rose" : "bg-black/30 text-white"
+          aktiv ? "bg-white/90 text-rose" : "bg-black/35 text-white"
         } ${aktiv ? "anim-bump" : ""}`}
       >
         {children}
       </span>
-      <span className="text-[11px] font-semibold text-white drop-shadow">{label}</span>
+      <span className="text-[11px] font-semibold text-white text-skugga">{label}</span>
     </button>
   );
 }

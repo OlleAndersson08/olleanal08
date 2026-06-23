@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import Jobbkort from "@/components/Jobbkort";
 import Meny from "@/components/Meny";
 import type { Jobb } from "@/data/jobb";
@@ -21,6 +22,16 @@ export default function JobbFlode({ jobb }: { jobb: Jobb[] }) {
     if (!el) return;
     const index = Math.round(el.scrollTop / el.clientHeight);
     if (index !== aktiv) setAktiv(Math.min(index, totalt));
+  }
+
+  function delaAppen() {
+    const data = {
+      title: "SommarMatch",
+      text: "Kolla in SommarMatch – svep dig till ett sommarjobb! 🔥",
+    };
+    if (typeof navigator !== "undefined" && navigator.share) {
+      navigator.share(data).catch(() => {});
+    }
   }
 
   return (
@@ -57,19 +68,38 @@ export default function JobbFlode({ jobb }: { jobb: Jobb[] }) {
           <Jobbkort key={j.id} jobb={j} />
         ))}
 
-        {/* Slutvy */}
-        <section className="flex h-[100svh] snap-start flex-col items-center justify-center gap-4 bg-bg px-8 text-center">
+        {/* Slutvy – håll flödet levande med nästa steg */}
+        <section className="flex h-[100svh] snap-start flex-col items-center justify-center px-8 text-center">
           <span className="anim-float text-6xl">🎉</span>
-          <h2 className="text-2xl font-extrabold">Du har sett alla jobb!</h2>
-          <p className="max-w-xs text-mute">
+          <h2 className="mt-4 text-2xl font-extrabold">Du har sett alla jobb!</h2>
+          <p className="mt-2 max-w-xs text-mute">
             Nya jobb dyker upp hela tiden. Slå på notiser så missar du inget.
           </p>
+
+          {/* Actionable nästa steg */}
+          <div className="mt-7 flex w-full max-w-xs flex-col gap-3">
+            <Link
+              href="/profil"
+              className="bg-brand group inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-4 font-bold text-white shadow-xl shadow-rose/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:scale-[0.97]"
+            >
+              ✨ Komplettera profilen för fler matchningar
+            </Link>
+            <button
+              type="button"
+              onClick={delaAppen}
+              className="glas inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-4 font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/10 active:scale-[0.97]"
+            >
+              📲 Dela appen med en vän
+            </button>
+          </div>
+
           <button
             type="button"
             onClick={() => ref.current?.scrollTo({ top: 0, behavior: "smooth" })}
-            className="glas mt-2 rounded-2xl px-6 py-3 font-semibold"
+            className="group mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-mute transition hover:text-text"
           >
-            ↑ Börja om från toppen
+            <span className="transition-transform duration-200 group-hover:-translate-y-0.5">↑</span>
+            Börja om från toppen
           </button>
         </section>
       </div>

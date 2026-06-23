@@ -85,6 +85,14 @@ body {
   backdrop-filter: blur(12px);
 }
 
+/* Mjuk textskugga – gör vit text läsbar även på ljusa kort */
+.text-skugga {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 14px rgba(0, 0, 0, 0.45);
+}
+.text-skugga-mjuk {
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
+}
+
 /* Döljer scrollbaren men behåller scrollning */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
@@ -188,6 +196,17 @@ body {
 }
 .anim-bump {
   animation: bump 0.45s ease;
+}
+
+/* Fjäder-animation (spring) – kortets innehåll studsar mjukt på plats vid svep */
+@keyframes spring-settle {
+  0% { opacity: 0; transform: translateY(34px) scale(0.965); }
+  55% { opacity: 1; transform: translateY(-7px) scale(1.008); }
+  78% { transform: translateY(2px) scale(0.997); }
+  100% { transform: translateY(0) scale(1); }
+}
+.spring {
+  animation: spring-settle 0.66s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 /* Respektera användare som vill ha mindre rörelse */
