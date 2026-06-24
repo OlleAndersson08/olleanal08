@@ -12,7 +12,15 @@ import type { Mojlighet } from "@/data/mojligheter";
   så man hela tiden ser hur långt man kommit (driver "en till"-känslan).
 */
 
-export default function JobbFlode({ jobb }: { jobb: Mojlighet[] }) {
+export default function JobbFlode({
+  jobb,
+  ansokta = [],
+  inloggad = false,
+}: {
+  jobb: Mojlighet[];
+  ansokta?: string[];
+  inloggad?: boolean;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [aktiv, setAktiv] = useState(0);
   const totalt = jobb.length;
@@ -65,7 +73,7 @@ export default function JobbFlode({ jobb }: { jobb: Mojlighet[] }) {
         className="no-scrollbar h-[100svh] snap-y snap-mandatory overflow-y-scroll"
       >
         {jobb.map((j) => (
-          <Jobbkort key={j.id} jobb={j} />
+          <Jobbkort key={j.id} jobb={j} redanAnsokt={ansokta.includes(j.id)} inloggad={inloggad} />
         ))}
 
         {/* Slutvy – håll flödet levande med nästa steg */}

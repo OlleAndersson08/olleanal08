@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { TYPER, type Mojlighet } from "@/data/mojligheter";
+import { ansokAction } from "@/lib/actions";
 
 /*
   Möjlighetskort – ett kort som fyller skärmen, som ett TikTok-klipp.
@@ -16,14 +18,36 @@ function formatTal(n: number) {
   return String(n);
 }
 
-export default function Jobbkort({ jobb }: { jobb: Mojlighet }) {
+export default function Jobbkort({
+  jobb,
+  redanAnsokt = false,
+  inloggad = false,
+}: {
+  jobb: Mojlighet;
+  redanAnsokt?: boolean;
+  inloggad?: boolean;
+}) {
   const [gillad, setGillad] = useState(false);
   const [sparad, setSparad] = useState(false);
-  const [intresserad, setIntresserad] = useState(false);
+  const [intresserad, setIntresserad] = useState(redanAnsokt);
   const [burst, setBurst] = useState(0);
   const [synlig, setSynlig] = useState(0);
   const sistaTryck = useRef(0);
   const sektionRef = useRef<HTMLElement>(null);
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+
+  function ansok() {
+    if (intresserad) return;
+    if (!inloggad) {
+      router.push("/registrera");
+      return;
+    }
+    setIntresserad(true); // optimistiskt
+    startTransition(() => {
+      ansokAction(jobb.id);
+    });
+  }
 
   const typ = TYPER[jobb.typ];
   const antalGillar = jobb.gillar + (gillad ? 1 : 0);
@@ -173,7 +197,7 @@ export default function Jobbkort({ jobb }: { jobb: Mojlighet }) {
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            setIntresserad(true);
+            ansok();
           }}
           disabled={intresserad}
           className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-7 py-4 text-base font-extrabold transition-all duration-200 ease-out active:scale-[0.97] ${

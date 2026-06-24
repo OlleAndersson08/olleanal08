@@ -42,3 +42,9 @@ next-env.d.ts
 
 # Claude Code on the web
 .claude/
+
+# Lokal databas
+.data/
+*.db
+*.db-wal
+*.db-shm

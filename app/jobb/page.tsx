@@ -1,15 +1,22 @@
 import JobbFlode from "@/components/JobbFlode";
-import { mojligheter } from "@/data/mojligheter";
+import { allaMojligheter, ansoktIder } from "@/lib/db";
+import { nuvarandeAnvandare } from "@/lib/auth";
 
 /*
-  Flöde (Hem) – det kuraterade "För dig"-flödet, hjärtat i appen.
-  Blandar alla möjlighetstyper; kategorifiltrering finns under Utforska.
+  Flöde (Hem) – det kuraterade "För dig"-flödet, nu från riktig databas.
+  Läser inloggad användare för att veta vilka man redan ansökt till.
 */
 
-export default function FlodeSida() {
+export const dynamic = "force-dynamic";
+
+export default async function FlodeSida() {
+  const u = await nuvarandeAnvandare();
+  const mojligheter = allaMojligheter();
+  const ansokta = u ? ansoktIder(u.id) : [];
+
   return (
     <main className="flex-1 bg-bg">
-      <JobbFlode jobb={mojligheter} />
+      <JobbFlode jobb={mojligheter} ansokta={ansokta} inloggad={!!u} />
     </main>
   );
 }
