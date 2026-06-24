@@ -1,15 +1,15 @@
 import JobbFlode from "@/components/JobbFlode";
-import { jobb } from "@/data/jobb";
+import { mojligheter } from "@/data/mojligheter";
 
 /*
-  Jobbflödet – hjärtat i appen.
-  Sidan hämtar jobben och låter klientkomponenten sköta svep + progress.
+  Flöde (Hem) – det kuraterade "För dig"-flödet, hjärtat i appen.
+  Blandar alla möjlighetstyper; kategorifiltrering finns under Utforska.
 */
 
-export default function JobbFlodeSida() {
+export default function FlodeSida() {
   return (
     <main className="flex-1 bg-bg">
-      <JobbFlode jobb={jobb} />
+      <JobbFlode jobb={mojligheter} />
     </main>
   );
 }

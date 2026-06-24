@@ -9,9 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SommarMatch – Svep dig till sommarjobbet",
+  title: "SommarMatch – Tjäna pengar. Bygg din framtid.",
   description:
-    "TikTok för sommarjobb, extrajobb och första jobbet. Inga CV. Inget krångel. Svep, matcha, sök på en sekund.",
+    "Sveriges plattform för unga 15–25. Sommarjobb, extrajobb, gig och praktik – allt på ett ställe. Svep, matcha, sök på en sekund.",
 };
 
 // Mobil först: gör att sajten känns som en riktig app i mobilen.

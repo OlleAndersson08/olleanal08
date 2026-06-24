@@ -20,7 +20,7 @@ export default function Registrera() {
 
   function hanteraSkicka(e: React.FormEvent) {
     e.preventDefault();
-    router.push(roll === "ungdom" ? "/jobb" : "/skapa-jobb");
+    router.push(roll === "ungdom" ? "/onboarding" : "/foretag");
   }
 
   return (

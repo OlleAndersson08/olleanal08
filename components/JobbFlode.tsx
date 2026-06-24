@@ -4,15 +4,15 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import Jobbkort from "@/components/Jobbkort";
 import Meny from "@/components/Meny";
-import type { Jobb } from "@/data/jobb";
+import type { Mojlighet } from "@/data/mojligheter";
 
 /*
-  JobbFlode – den scrollande bunten med jobbkort.
+  JobbFlode – det kuraterade "För dig"-flödet med möjlighetskort (alla kategorier).
   Följer scrollen för att visa en story-stil progressrad högst upp,
   så man hela tiden ser hur långt man kommit (driver "en till"-känslan).
 */
 
-export default function JobbFlode({ jobb }: { jobb: Jobb[] }) {
+export default function JobbFlode({ jobb }: { jobb: Mojlighet[] }) {
   const ref = useRef<HTMLDivElement>(null);
   const [aktiv, setAktiv] = useState(0);
   const totalt = jobb.length;

@@ -1,17 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Jobb } from "@/data/jobb";
+import { TYPER, type Mojlighet } from "@/data/mojligheter";
 
 /*
-  Jobbkort 2.1 – ett jobb som fyller skärmen, som ett TikTok-klipp.
-  Beroende-mekanik + polering:
-   - Dubbeltryck var som helst = gilla + hjärt-explosion
-   - Actionrad i kanten: gilla, spara, dela
-   - Matchnings-% med förklarande undertext (känns personligt)
-   - All text har mjuk skugga = läsbar även på ljusa kort
-   - Innehållet studsar in med fjäder-animation (spring) vid svep
-   - Ett-klicks-ansökan med mjuk lyft-effekt + grön bekräftelse
+  Möjlighetskort – ett kort som fyller skärmen, som ett TikTok-klipp.
+  Fungerar för ALLA kategorier (jobb, gig, praktik, volontär ...).
+  Färgkodas efter kategori (Spotify-stil) och visar en typ-tagg.
+  Beroende-mekanik: dubbeltryck = gilla + hjärt-explosion, actionrad,
+  matchnings-% med förklaring, spring-animation, ett-kliks-intresse.
 */
 
 function formatTal(n: number) {
@@ -19,28 +16,25 @@ function formatTal(n: number) {
   return String(n);
 }
 
-export default function Jobbkort({ jobb }: { jobb: Jobb }) {
+export default function Jobbkort({ jobb }: { jobb: Mojlighet }) {
   const [gillad, setGillad] = useState(false);
   const [sparad, setSparad] = useState(false);
   const [intresserad, setIntresserad] = useState(false);
-  const [burst, setBurst] = useState(0); // ökar varje gång ett hjärta ska poppa
-  const [synlig, setSynlig] = useState(0); // ökar varje gång kortet svepas in (driver spring)
+  const [burst, setBurst] = useState(0);
+  const [synlig, setSynlig] = useState(0);
   const sistaTryck = useRef(0);
   const sektionRef = useRef<HTMLElement>(null);
 
+  const typ = TYPER[jobb.typ];
   const antalGillar = jobb.gillar + (gillad ? 1 : 0);
-  // Förklarar matchningen – mer personligt och trovärdigt
   const matchText = jobb.avstandKm <= 2 ? "📍 Nära dig" : "✨ Baserat på dina intressen";
 
-  // Spring-animation: studsa in innehållet varje gång kortet blir synligt
   useEffect(() => {
     const el = sektionRef.current;
     if (!el) return;
     const obs = new IntersectionObserver(
       ([e]) => {
-        if (e.isIntersecting && e.intersectionRatio > 0.6) {
-          setSynlig((s) => s + 1);
-        }
+        if (e.isIntersecting && e.intersectionRatio > 0.6) setSynlig((s) => s + 1);
       },
       { threshold: [0, 0.6, 1] },
     );
@@ -51,18 +45,15 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
   function poppaHjarta() {
     setBurst((b) => b + 1);
   }
-
   function gilla() {
     if (!gillad) setGillad(true);
     poppaHjarta();
   }
-
   function hanteraTryck() {
     const nu = Date.now();
-    if (nu - sistaTryck.current < 300) gilla(); // dubbeltryck
+    if (nu - sistaTryck.current < 300) gilla();
     sistaTryck.current = nu;
   }
-
   function dela() {
     const text = `${jobb.titel} hos ${jobb.foretag} på SommarMatch`;
     if (typeof navigator !== "undefined" && navigator.share) {
@@ -75,14 +66,12 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
       ref={sektionRef}
       onClick={hanteraTryck}
       className="relative flex h-[100svh] snap-start snap-always select-none flex-col justify-end overflow-hidden"
-      style={{ backgroundImage: `linear-gradient(160deg, ${jobb.fran}, ${jobb.till})` }}
+      style={{ backgroundImage: `linear-gradient(160deg, ${typ.fran}, ${typ.till})` }}
     >
-      {/* Stor emoji som "bild" */}
       <div className="anim-float pointer-events-none absolute inset-x-0 top-[12%] flex justify-center">
         <span className="text-[8rem] drop-shadow-xl">{jobb.emoji}</span>
       </div>
 
-      {/* Toningar för läsbarhet (starkare i botten där texten bor) */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-black/45 to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
 
@@ -102,7 +91,7 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
         </span>
       </div>
 
-      {/* Dubbeltryck-hjärtan (poppar i mitten) */}
+      {/* Dubbeltryck-hjärtan */}
       <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
         {burst > 0 && (
           <span key={burst} className="anim-heart text-[8rem] drop-shadow-2xl">
@@ -111,12 +100,11 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
         )}
       </div>
 
-      {/* Actionrad i höger kant */}
+      {/* Actionrad */}
       <div className="absolute bottom-36 right-3 z-30 flex flex-col items-center gap-5">
         <span className="bg-brand flex h-12 w-12 items-center justify-center rounded-full text-xl ring-2 ring-white/70">
           {jobb.emoji}
         </span>
-
         <RailKnapp
           aktiv={gillad}
           onClick={(e) => {
@@ -124,11 +112,10 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
             gilla();
           }}
           label={formatTal(antalGillar)}
-          ariaLabel={gillad ? "Du gillar det här jobbet" : "Gilla jobbet"}
+          ariaLabel={gillad ? "Du gillar det här" : "Gilla"}
         >
           <Hjarta fylld={gillad} />
         </RailKnapp>
-
         <RailKnapp
           aktiv={sparad}
           onClick={(e) => {
@@ -136,27 +123,30 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
             setSparad((s) => !s);
           }}
           label={sparad ? "Sparad" : "Spara"}
-          ariaLabel={sparad ? "Sparat jobb" : "Spara jobbet"}
+          ariaLabel={sparad ? "Sparad" : "Spara"}
         >
           <Bokmarke fylld={sparad} />
         </RailKnapp>
-
         <RailKnapp
           onClick={(e) => {
             e.stopPropagation();
             dela();
           }}
           label="Dela"
-          ariaLabel="Dela jobbet"
+          ariaLabel="Dela"
         >
           <Dela />
         </RailKnapp>
       </div>
 
-      {/* Innehåll längst ner – studsar in med spring varje gång kortet svepas fram */}
+      {/* Innehåll – spring in vid svep */}
       <div key={synlig} className="spring relative z-10 px-5 pb-28 pr-20 pt-10 text-white">
-        <div className="mb-2 flex flex-wrap gap-2">
-          {jobb.taggar.map((tagg) => (
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          {/* Kategori-tagg */}
+          <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-black/80 text-skugga-mjuk">
+            {typ.emoji} {typ.etikett}
+          </span>
+          {jobb.taggar.slice(0, 2).map((tagg) => (
             <span
               key={tagg}
               className="rounded-full bg-black/25 px-3 py-1 text-xs font-medium backdrop-blur-sm text-skugga-mjuk"
@@ -167,21 +157,18 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
         </div>
 
         <p className="text-sm font-semibold opacity-95 text-skugga">{jobb.foretag}</p>
-        <h2 className="mt-1 text-[1.9rem] font-extrabold leading-tight text-skugga">
-          {jobb.titel}
-        </h2>
+        <h2 className="mt-1 text-[1.9rem] font-extrabold leading-tight text-skugga">{jobb.titel}</h2>
 
         <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold opacity-95 text-skugga">
-          <span>📍 {jobb.avstandKm} km bort</span>
+          <span>📍 {jobb.avstandKm === 0 ? jobb.ort : `${jobb.avstandKm} km bort`}</span>
           <span className="opacity-50">·</span>
-          <span>💰 {jobb.lon}</span>
+          <span>💰 {jobb.ersattning}</span>
         </p>
 
         <p className="mt-2.5 max-w-sm text-[15px] leading-relaxed opacity-95 text-skugga-mjuk">
           {jobb.beskrivning}
         </p>
 
-        {/* Ansök-knappen – mjuk lyft-effekt vid hover/aktiv */}
         <button
           type="button"
           onClick={(e) => {
@@ -196,7 +183,7 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
           }`}
         >
           {intresserad ? (
-            <span className="anim-bump">Ansökan skickad ✓</span>
+            <span className="anim-bump">Intresse skickat ✓</span>
           ) : (
             "❤️ Jag är intresserad"
           )}
@@ -206,7 +193,6 @@ export default function Jobbkort({ jobb }: { jobb: Jobb }) {
   );
 }
 
-/* En knapp i actionraden: ikon + liten text under */
 function RailKnapp({
   children,
   label,
@@ -240,7 +226,6 @@ function RailKnapp({
   );
 }
 
-/* ---- Ikoner ---- */
 function Hjarta({ fylld }: { fylld: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill={fylld ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
