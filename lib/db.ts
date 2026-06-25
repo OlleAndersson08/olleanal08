@@ -16,7 +16,7 @@ import { mojligheter as fro, type TypNyckel } from "@/data/mojligheter";
   till $1, $2 ... för Postgres). Seedning är idempotent via ON CONFLICT.
 */
 
-const harPostgres = !!process.env.DATABASE_URL;
+const harPostgres = !!(process.env.DATABASE_URL || process.env.POSTGRES_URL);
 
 /* ---------- Lågnivå: en enhetlig async-fråge-funktion ---------- */
 
@@ -31,7 +31,7 @@ const g = globalThis as unknown as {
 
 function pgPool() {
   if (!g._smPgPool) {
-    const url = process.env.DATABASE_URL!;
+    const url = (process.env.DATABASE_URL || process.env.POSTGRES_URL)!;
     const lokal = url.includes("localhost") || url.includes("127.0.0.1");
     g._smPgPool = new Pool({
       connectionString: url,
