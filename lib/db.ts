@@ -97,7 +97,13 @@ async function init() {
     emoji TEXT NOT NULL, ort TEXT NOT NULL, avstand_km REAL NOT NULL DEFAULT 0,
     ersattning TEXT NOT NULL, beskrivning TEXT NOT NULL, taggar TEXT NOT NULL DEFAULT '[]',
     match INTEGER NOT NULL DEFAULT 85, gillar INTEGER NOT NULL DEFAULT 0,
-    tittar_nu INTEGER NOT NULL DEFAULT 0, agare_id TEXT, skapad BIGINT NOT NULL)`);
+    tittar_nu INTEGER NOT NULL DEFAULT 0, video_url TEXT, agare_id TEXT, skapad BIGINT NOT NULL)`);
+  // Migrering för databaser skapade innan video_url fanns (idempotent).
+  try {
+    await run("ALTER TABLE opportunities ADD COLUMN video_url TEXT");
+  } catch {
+    /* kolumnen finns redan */
+  }
   await run(`CREATE TABLE IF NOT EXISTS applications (
     id TEXT PRIMARY KEY, user_id TEXT NOT NULL, opportunity_id TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'Skickad', skapad BIGINT NOT NULL,
@@ -107,10 +113,10 @@ async function init() {
   for (const m of fro) {
     await run(
       `INSERT INTO opportunities
-       (id, typ, foretag, titel, emoji, ort, avstand_km, ersattning, beskrivning, taggar, match, gillar, tittar_nu, agare_id, skapad)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING`,
+       (id, typ, foretag, titel, emoji, ort, avstand_km, ersattning, beskrivning, taggar, match, gillar, tittar_nu, video_url, agare_id, skapad)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING`,
       [m.id, m.typ, m.foretag, m.titel, m.emoji, m.ort, m.avstandKm, m.ersattning,
-       m.beskrivning, JSON.stringify(m.taggar), m.match, m.gillar, m.tittarNu, null, Date.now()],
+       m.beskrivning, JSON.stringify(m.taggar), m.match, m.gillar, m.tittarNu, m.videoUrl ?? null, null, Date.now()],
     );
   }
 }
@@ -145,6 +151,7 @@ export type DbMojlighet = {
   match: number;
   gillar: number;
   tittarNu: number;
+  videoUrl: string | null;
 };
 
 function radTillMojlighet(r: Rad): DbMojlighet {
@@ -162,6 +169,7 @@ function radTillMojlighet(r: Rad): DbMojlighet {
     match: Number(r.match),
     gillar: Number(r.gillar),
     tittarNu: Number(r.tittar_nu),
+    videoUrl: (r.video_url as string) ?? null,
   };
 }
 
@@ -222,16 +230,16 @@ export async function mojligheterForAgare(agareId: string): Promise<DbMojlighet[
   );
 }
 export async function skapaMojlighet(d: {
-  typ: TypNyckel; foretag: string; titel: string; emoji: string; ort: string; ersattning: string; beskrivning: string; taggar: string[]; agareId: string;
+  typ: TypNyckel; foretag: string; titel: string; emoji: string; ort: string; ersattning: string; beskrivning: string; taggar: string[]; agareId: string; videoUrl?: string | null;
 }): Promise<string> {
   await redo();
   const id = randomUUID();
   await run(
     `INSERT INTO opportunities
-     (id, typ, foretag, titel, emoji, ort, avstand_km, ersattning, beskrivning, taggar, match, gillar, tittar_nu, agare_id, skapad)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+     (id, typ, foretag, titel, emoji, ort, avstand_km, ersattning, beskrivning, taggar, match, gillar, tittar_nu, video_url, agare_id, skapad)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     [id, d.typ, d.foretag, d.titel, d.emoji, d.ort, 0, d.ersattning, d.beskrivning, JSON.stringify(d.taggar),
-     85 + Math.floor(Math.random() * 12), 0, 1 + Math.floor(Math.random() * 9), d.agareId, Date.now()],
+     85 + Math.floor(Math.random() * 12), 0, 1 + Math.floor(Math.random() * 9), d.videoUrl ?? null, d.agareId, Date.now()],
   );
   return id;
 }

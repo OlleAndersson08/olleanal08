@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import Falt from "@/components/Falt";
+import VideoUppladdning from "@/components/VideoUppladdning";
 import { skapaMojlighetAction } from "@/lib/actions";
 import { TYPER } from "@/data/mojligheter";
 
@@ -30,12 +31,8 @@ export default function SkapaJobb() {
         </div>
 
         <form action={formAction} className="anim-up mt-6 flex flex-col gap-4">
-          {/* Uppladdningsruta (visuell) */}
-          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/15 bg-white/5 py-10 text-center transition hover:bg-white/[0.07]">
-            <span className="text-3xl">📷</span>
-            <p className="font-semibold">Lägg till video eller bild</p>
-            <p className="text-sm text-mute">Visa hur det är att jobba hos er</p>
-          </div>
+          {/* Videouppladdning */}
+          <VideoUppladdning />
 
           <Falt
             etikett="Titel"

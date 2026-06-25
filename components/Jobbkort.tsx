@@ -92,9 +92,22 @@ export default function Jobbkort({
       className="relative flex h-[100svh] snap-start snap-always select-none flex-col justify-end overflow-hidden"
       style={{ backgroundImage: `linear-gradient(160deg, ${typ.fran}, ${typ.till})` }}
     >
-      <div className="anim-float pointer-events-none absolute inset-x-0 top-[12%] flex justify-center">
-        <span className="text-[8rem] drop-shadow-xl">{jobb.emoji}</span>
-      </div>
+      {/* Video fyller kortet om den finns – annars stor emoji */}
+      {jobb.videoUrl ? (
+        <video
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          src={jobb.videoUrl}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+        />
+      ) : (
+        <div className="anim-float pointer-events-none absolute inset-x-0 top-[12%] flex justify-center">
+          <span className="text-[8rem] drop-shadow-xl">{jobb.emoji}</span>
+        </div>
+      )}
 
       <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-black/45 to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />

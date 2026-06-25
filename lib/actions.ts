@@ -72,6 +72,7 @@ export async function skapaMojlighetAction(_prev: FormState, formData: FormData)
   const ersattning = String(formData.get("ersattning") ?? "").trim();
   const ort = String(formData.get("ort") ?? "").trim();
   const typ = String(formData.get("typ") ?? "extra") as TypNyckel;
+  const videoUrl = String(formData.get("video_url") ?? "").trim();
   if (!titel || !beskrivning) return { error: "Fyll i titel och beskrivning." };
 
   await skapaMojlighet({
@@ -84,6 +85,7 @@ export async function skapaMojlighetAction(_prev: FormState, formData: FormData)
     beskrivning,
     taggar: ["Ny", "Lokalt"],
     agareId: u.id,
+    videoUrl: videoUrl || null,
   });
   revalidatePath("/jobb");
   revalidatePath("/utforska");
