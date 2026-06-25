@@ -12,7 +12,7 @@ const SYSTEM = `Du är SommarMatchs AI-karriärcoach. Du hjälper unga i Sverige
 
 Svara kort, konkret och uppmuntrande – på svenska. Anpassa råden efter svenska regler (åldersgränser för arbete, skattefri inkomst och intyg för lön utan skatteavdrag, arbetstider för minderåriga). Målgruppen är ofta minderårig: var trygg och respektfull, ge aldrig olämpliga råd, och hänvisa till förälder, skola eller facket när det passar.
 
-Svara direkt med ditt slutsvar, utan att skriva ut ditt resonemang. Håll svaren under cirka 120 ord om inte mer verkligen behövs. Avsluta gärna med en kort, peppande mening.`;
+Svara direkt med ditt slutsvar, utan att skriva ut ditt resonemang. Håll svaren korta och kärnfulla – gärna under 80 ord. Avsluta gärna med en kort, peppande mening.`;
 
 const RESERV =
   "Hej! Den riktiga AI-coachen är inte påkopplad än (den behöver en API-nyckel). Tills dess: kolla lektionerna under Väx – de svarar på det mesta om ditt första jobb. 🌱";
@@ -35,6 +35,8 @@ export async function POST(req: Request) {
     return new Response(RESERV, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
   }
 
+  // Spara pengar: skicka bara de senaste meddelandena (mindre att betala för).
+  meddelanden = meddelanden.slice(-8);
   // Säkerställ att samtalet börjar med ett user-meddelande.
   while (meddelanden.length && meddelanden[0].role !== "user") meddelanden.shift();
   if (meddelanden.length === 0) {
@@ -50,8 +52,10 @@ export async function POST(req: Request) {
     async start(controller) {
       try {
         const claude = client.messages.stream({
-          model: "claude-opus-4-8",
-          max_tokens: 1024,
+          // Billigaste Claude-modellen – mycket bra för en chattcoach.
+          model: "claude-haiku-4-5",
+          // Korta svar = lägre kostnad (coachen ska ändå svara kärnfullt).
+          max_tokens: 512,
           system: SYSTEM,
           messages: meddelanden,
         });
