@@ -39,8 +39,8 @@ export default async function Foretag() {
     );
   }
 
-  const annonser = mojligheterForAgare(u.id);
-  const sokande = sokandeForAgare(u.id);
+  const annonser = await mojligheterForAgare(u.id);
+  const sokande = await sokandeForAgare(u.id);
 
   return (
     <main className="relative flex-1 overflow-x-hidden bg-bg">

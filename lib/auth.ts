@@ -34,7 +34,7 @@ export function verifieraLosen(losen: string, lagrat: string): boolean {
 
 export async function startaSession(userId: string) {
   const token = randomUUID() + randomUUID();
-  skapaSession(token, userId);
+  await skapaSession(token, userId);
   const c = await cookies();
   c.set(COOKIE, token, {
     httpOnly: true,
@@ -48,7 +48,7 @@ export async function startaSession(userId: string) {
 export async function avslutaSession() {
   const c = await cookies();
   const token = c.get(COOKIE)?.value;
-  if (token) raderaSession(token);
+  if (token) await raderaSession(token);
   c.delete(COOKIE);
 }
 
@@ -56,7 +56,7 @@ export async function nuvarandeAnvandare(): Promise<DbAnvandare | null> {
   const c = await cookies();
   const token = c.get(COOKIE)?.value;
   if (!token) return null;
-  return anvandareViaSession(token) ?? null;
+  return (await anvandareViaSession(token)) ?? null;
 }
 
 export { anvandareViaEmail };

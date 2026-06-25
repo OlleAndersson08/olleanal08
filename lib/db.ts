@@ -1,104 +1,123 @@
-import { DatabaseSync } from "node:sqlite";
 import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import { DatabaseSync } from "node:sqlite";
+import { Pool } from "pg";
 import { mojligheter as fro, type TypNyckel } from "@/data/mojligheter";
 
 /*
-  Riktig databas på Nodes inbyggda SQLite – noll externa beroenden.
-  Sparar användare, sessioner, möjligheter och ansökningar på riktigt.
+  Datalager med stöd för TVÅ databaser bakom ett gemensamt async-gränssnitt:
 
-  Filens plats:
-   - Vercel/serverless: /tmp (enda skrivbara stället)
-   - Lokalt: ./.data/sommarmatch.db
-  För en publik livesajt som ska minnas allt för alla besökare pekar man
-  DATABASE_PATH mot en delad disk, eller byter datalagret mot Postgres.
+   - Postgres (via "pg") när DATABASE_URL är satt → permanent molndatabas,
+     perfekt för livesajten på Vercel. Data minns allt för alla besökare.
+   - Annars Nodes inbyggda SQLite (node:sqlite) → smidigt lokalt och i test.
+
+  Samma SQL fungerar i båda (vi använder "?" som platshållare och översätter
+  till $1, $2 ... för Postgres). Seedning är idempotent via ON CONFLICT.
 */
 
-function dbSokvag() {
-  if (process.env.DATABASE_PATH) return process.env.DATABASE_PATH;
-  if (process.env.VERCEL) return "/tmp/sommarmatch.db";
-  return "./.data/sommarmatch.db";
-}
+const harPostgres = !!process.env.DATABASE_URL;
 
-// Singleton som överlever hot-reload i utveckling.
-const g = globalThis as unknown as { _smDb?: DatabaseSync };
+/* ---------- Lågnivå: en enhetlig async-fråge-funktion ---------- */
 
-function init(): DatabaseSync {
-  const sokvag = dbSokvag();
-  if (sokvag !== ":memory:" && sokvag.includes("/")) {
-    const dir = dirname(sokvag);
-    if (dir && !existsSync(dir)) mkdirSync(dir, { recursive: true });
+type Rad = Record<string, unknown>;
+
+// Postgres-pool (återanvänds inom samma instans).
+const g = globalThis as unknown as {
+  _smPgPool?: Pool;
+  _smSqlite?: DatabaseSync;
+  _smInit?: Promise<void>;
+};
+
+function pgPool() {
+  if (!g._smPgPool) {
+    const url = process.env.DATABASE_URL!;
+    const lokal = url.includes("localhost") || url.includes("127.0.0.1");
+    g._smPgPool = new Pool({
+      connectionString: url,
+      ssl: lokal ? undefined : { rejectUnauthorized: false },
+      max: 5,
+    });
   }
-  const db = new DatabaseSync(sokvag);
-  db.exec(`
-    PRAGMA journal_mode = WAL;
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      namn TEXT,
-      ort TEXT,
-      alder INTEGER,
-      roll TEXT NOT NULL DEFAULT 'ungdom',
-      foretag TEXT,
-      losen TEXT NOT NULL,
-      skapad INTEGER NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS sessions (
-      token TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      skapad INTEGER NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS opportunities (
-      id TEXT PRIMARY KEY,
-      typ TEXT NOT NULL,
-      foretag TEXT NOT NULL,
-      titel TEXT NOT NULL,
-      emoji TEXT NOT NULL,
-      ort TEXT NOT NULL,
-      avstand_km REAL NOT NULL DEFAULT 0,
-      ersattning TEXT NOT NULL,
-      beskrivning TEXT NOT NULL,
-      taggar TEXT NOT NULL DEFAULT '[]',
-      match INTEGER NOT NULL DEFAULT 85,
-      gillar INTEGER NOT NULL DEFAULT 0,
-      tittar_nu INTEGER NOT NULL DEFAULT 0,
-      agare_id TEXT,
-      skapad INTEGER NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS applications (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      opportunity_id TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'Skickad',
-      skapad INTEGER NOT NULL,
-      UNIQUE(user_id, opportunity_id)
-    );
-  `);
-  seed(db);
-  return db;
+  return g._smPgPool;
 }
 
-function seed(db: DatabaseSync) {
-  const antal = db.prepare("SELECT COUNT(*) c FROM opportunities").get() as { c: number };
-  if (antal.c > 0) return;
-  const stmt = db.prepare(
-    `INSERT INTO opportunities
-     (id, typ, foretag, titel, emoji, ort, avstand_km, ersattning, beskrivning, taggar, match, gillar, tittar_nu, agare_id, skapad)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-  );
-  const nu = Date.now();
+function sqliteDb() {
+  if (!g._smSqlite) {
+    const sokvag = process.env.DATABASE_PATH || (process.env.VERCEL ? "/tmp/sommarmatch.db" : "./.data/sommarmatch.db");
+    if (sokvag !== ":memory:" && sokvag.includes("/")) {
+      const dir = dirname(sokvag);
+      if (dir && !existsSync(dir)) mkdirSync(dir, { recursive: true });
+    }
+    g._smSqlite = new DatabaseSync(sokvag);
+  }
+  return g._smSqlite;
+}
+
+// Översätt "?"-platshållare till "$1, $2 ..." för Postgres.
+function tillPg(sql: string) {
+  let i = 0;
+  return sql.replace(/\?/g, () => `$${++i}`);
+}
+
+async function run(sql: string, params: unknown[] = []): Promise<void> {
+  if (harPostgres) {
+    await pgPool().query(tillPg(sql), params);
+  } else {
+    sqliteDb().prepare(sql).run(...params);
+  }
+}
+async function all(sql: string, params: unknown[] = []): Promise<Rad[]> {
+  if (harPostgres) {
+    const r = await pgPool().query(tillPg(sql), params);
+    return r.rows as Rad[];
+  }
+  return sqliteDb().prepare(sql).all(...params) as Rad[];
+}
+async function get(sql: string, params: unknown[] = []): Promise<Rad | undefined> {
+  const r = await all(sql, params);
+  return r[0];
+}
+
+/* ---------- Init + seedning (idempotent) ---------- */
+
+async function init() {
+  if (!harPostgres) {
+    sqliteDb().exec("PRAGMA journal_mode = WAL;");
+  }
+  // Samma DDL fungerar i båda (TEXT/INTEGER/REAL finns i Postgres och SQLite).
+  await run(`CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, namn TEXT, ort TEXT,
+    alder INTEGER, roll TEXT NOT NULL DEFAULT 'ungdom', foretag TEXT,
+    losen TEXT NOT NULL, skapad BIGINT NOT NULL)`);
+  await run(`CREATE TABLE IF NOT EXISTS sessions (
+    token TEXT PRIMARY KEY, user_id TEXT NOT NULL, skapad BIGINT NOT NULL)`);
+  await run(`CREATE TABLE IF NOT EXISTS opportunities (
+    id TEXT PRIMARY KEY, typ TEXT NOT NULL, foretag TEXT NOT NULL, titel TEXT NOT NULL,
+    emoji TEXT NOT NULL, ort TEXT NOT NULL, avstand_km REAL NOT NULL DEFAULT 0,
+    ersattning TEXT NOT NULL, beskrivning TEXT NOT NULL, taggar TEXT NOT NULL DEFAULT '[]',
+    match INTEGER NOT NULL DEFAULT 85, gillar INTEGER NOT NULL DEFAULT 0,
+    tittar_nu INTEGER NOT NULL DEFAULT 0, agare_id TEXT, skapad BIGINT NOT NULL)`);
+  await run(`CREATE TABLE IF NOT EXISTS applications (
+    id TEXT PRIMARY KEY, user_id TEXT NOT NULL, opportunity_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'Skickad', skapad BIGINT NOT NULL,
+    UNIQUE(user_id, opportunity_id))`);
+
+  // Seed exempelmöjligheter (idempotent – körs säkert även parallellt).
   for (const m of fro) {
-    stmt.run(
-      m.id, m.typ, m.foretag, m.titel, m.emoji, m.ort, m.avstandKm, m.ersattning,
-      m.beskrivning, JSON.stringify(m.taggar), m.match, m.gillar, m.tittarNu, null, nu,
+    await run(
+      `INSERT INTO opportunities
+       (id, typ, foretag, titel, emoji, ort, avstand_km, ersattning, beskrivning, taggar, match, gillar, tittar_nu, agare_id, skapad)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING`,
+      [m.id, m.typ, m.foretag, m.titel, m.emoji, m.ort, m.avstandKm, m.ersattning,
+       m.beskrivning, JSON.stringify(m.taggar), m.match, m.gillar, m.tittarNu, null, Date.now()],
     );
   }
 }
 
-export function db(): DatabaseSync {
-  if (!g._smDb) g._smDb = init();
-  return g._smDb;
+function redo(): Promise<void> {
+  if (!g._smInit) g._smInit = init();
+  return g._smInit;
 }
 
 /* ---------- Typer ---------- */
@@ -128,7 +147,7 @@ export type DbMojlighet = {
   tittarNu: number;
 };
 
-function radTillMojlighet(r: Record<string, unknown>): DbMojlighet {
+function radTillMojlighet(r: Rad): DbMojlighet {
   return {
     id: r.id as string,
     typ: r.typ as TypNyckel,
@@ -136,150 +155,123 @@ function radTillMojlighet(r: Record<string, unknown>): DbMojlighet {
     titel: r.titel as string,
     emoji: r.emoji as string,
     ort: r.ort as string,
-    avstandKm: r.avstand_km as number,
+    avstandKm: Number(r.avstand_km),
     ersattning: r.ersattning as string,
     beskrivning: r.beskrivning as string,
     taggar: JSON.parse((r.taggar as string) || "[]"),
-    match: r.match as number,
-    gillar: r.gillar as number,
-    tittarNu: r.tittar_nu as number,
+    match: Number(r.match),
+    gillar: Number(r.gillar),
+    tittarNu: Number(r.tittar_nu),
   };
 }
 
 /* ---------- Användare ---------- */
-export function skapaAnvandare(d: {
-  email: string;
-  losen: string;
-  namn?: string;
-  ort?: string;
-  alder?: number;
-  roll: string;
-  foretag?: string;
-}): string {
+export async function skapaAnvandare(d: {
+  email: string; losen: string; namn?: string; ort?: string; alder?: number; roll: string; foretag?: string;
+}): Promise<string> {
+  await redo();
   const id = randomUUID();
-  db()
-    .prepare(
-      `INSERT INTO users (id, email, namn, ort, alder, roll, foretag, losen, skapad)
-       VALUES (?,?,?,?,?,?,?,?,?)`,
-    )
-    .run(id, d.email, d.namn ?? null, d.ort ?? null, d.alder ?? null, d.roll, d.foretag ?? null, d.losen, Date.now());
+  await run(
+    `INSERT INTO users (id, email, namn, ort, alder, roll, foretag, losen, skapad) VALUES (?,?,?,?,?,?,?,?,?)`,
+    [id, d.email, d.namn ?? null, d.ort ?? null, d.alder ?? null, d.roll, d.foretag ?? null, d.losen, Date.now()],
+  );
   return id;
 }
 
-export function anvandareViaEmail(email: string) {
-  return db().prepare("SELECT * FROM users WHERE email = ?").get(email) as
+export async function anvandareViaEmail(email: string) {
+  await redo();
+  return (await get("SELECT * FROM users WHERE email = ?", [email])) as
     | (DbAnvandare & { losen: string })
     | undefined;
 }
 
-export function anvandareViaId(id: string): DbAnvandare | undefined {
-  const r = db().prepare("SELECT id, email, namn, ort, alder, roll, foretag FROM users WHERE id = ?").get(id);
-  return r as DbAnvandare | undefined;
+export async function anvandareViaId(id: string): Promise<DbAnvandare | undefined> {
+  await redo();
+  return (await get("SELECT id, email, namn, ort, alder, roll, foretag FROM users WHERE id = ?", [id])) as
+    | DbAnvandare
+    | undefined;
 }
 
 /* ---------- Sessioner ---------- */
-export function skapaSession(token: string, userId: string) {
-  db().prepare("INSERT INTO sessions (token, user_id, skapad) VALUES (?,?,?)").run(token, userId, Date.now());
+export async function skapaSession(token: string, userId: string) {
+  await redo();
+  await run("INSERT INTO sessions (token, user_id, skapad) VALUES (?,?,?)", [token, userId, Date.now()]);
 }
-export function anvandareViaSession(token: string): DbAnvandare | undefined {
-  const r = db()
-    .prepare(
-      `SELECT u.id, u.email, u.namn, u.ort, u.alder, u.roll, u.foretag
-       FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token = ?`,
-    )
-    .get(token);
-  return r as DbAnvandare | undefined;
+export async function anvandareViaSession(token: string): Promise<DbAnvandare | undefined> {
+  await redo();
+  return (await get(
+    `SELECT u.id, u.email, u.namn, u.ort, u.alder, u.roll, u.foretag
+     FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token = ?`,
+    [token],
+  )) as DbAnvandare | undefined;
 }
-export function raderaSession(token: string) {
-  db().prepare("DELETE FROM sessions WHERE token = ?").run(token);
+export async function raderaSession(token: string) {
+  await redo();
+  await run("DELETE FROM sessions WHERE token = ?", [token]);
 }
 
 /* ---------- Möjligheter ---------- */
-export function allaMojligheter(): DbMojlighet[] {
-  return db().prepare("SELECT * FROM opportunities ORDER BY skapad DESC").all().map(radTillMojlighet);
+export async function allaMojligheter(): Promise<DbMojlighet[]> {
+  await redo();
+  return (await all("SELECT * FROM opportunities ORDER BY skapad DESC")).map(radTillMojlighet);
 }
-export function mojligheterForAgare(agareId: string): DbMojlighet[] {
-  return db()
-    .prepare("SELECT * FROM opportunities WHERE agare_id = ? ORDER BY skapad DESC")
-    .all(agareId)
-    .map(radTillMojlighet);
+export async function mojligheterForAgare(agareId: string): Promise<DbMojlighet[]> {
+  await redo();
+  return (await all("SELECT * FROM opportunities WHERE agare_id = ? ORDER BY skapad DESC", [agareId])).map(
+    radTillMojlighet,
+  );
 }
-export function skapaMojlighet(d: {
-  typ: TypNyckel;
-  foretag: string;
-  titel: string;
-  emoji: string;
-  ort: string;
-  ersattning: string;
-  beskrivning: string;
-  taggar: string[];
-  agareId: string;
-}): string {
+export async function skapaMojlighet(d: {
+  typ: TypNyckel; foretag: string; titel: string; emoji: string; ort: string; ersattning: string; beskrivning: string; taggar: string[]; agareId: string;
+}): Promise<string> {
+  await redo();
   const id = randomUUID();
-  db()
-    .prepare(
-      `INSERT INTO opportunities
-       (id, typ, foretag, titel, emoji, ort, avstand_km, ersattning, beskrivning, taggar, match, gillar, tittar_nu, agare_id, skapad)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-    )
-    .run(
-      id, d.typ, d.foretag, d.titel, d.emoji, d.ort, 0, d.ersattning, d.beskrivning,
-      JSON.stringify(d.taggar), 85 + Math.floor(Math.random() * 12), 0, 1 + Math.floor(Math.random() * 9),
-      d.agareId, Date.now(),
-    );
+  await run(
+    `INSERT INTO opportunities
+     (id, typ, foretag, titel, emoji, ort, avstand_km, ersattning, beskrivning, taggar, match, gillar, tittar_nu, agare_id, skapad)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    [id, d.typ, d.foretag, d.titel, d.emoji, d.ort, 0, d.ersattning, d.beskrivning, JSON.stringify(d.taggar),
+     85 + Math.floor(Math.random() * 12), 0, 1 + Math.floor(Math.random() * 9), d.agareId, Date.now()],
+  );
   return id;
 }
 
 /* ---------- Ansökningar ---------- */
-export function skapaAnsokan(userId: string, opportunityId: string) {
-  try {
-    db()
-      .prepare("INSERT INTO applications (id, user_id, opportunity_id, status, skapad) VALUES (?,?,?,?,?)")
-      .run(randomUUID(), userId, opportunityId, "Skickad", Date.now());
-  } catch {
-    // redan ansökt (UNIQUE) – strunta i det
-  }
+export async function skapaAnsokan(userId: string, opportunityId: string) {
+  await redo();
+  await run(
+    `INSERT INTO applications (id, user_id, opportunity_id, status, skapad)
+     VALUES (?,?,?,?,?) ON CONFLICT(user_id, opportunity_id) DO NOTHING`,
+    [randomUUID(), userId, opportunityId, "Skickad", Date.now()],
+  );
 }
 
-export type AnsokanRad = {
-  id: string;
-  status: string;
-  foretag: string;
-  titel: string;
-  emoji: string;
-  typ: TypNyckel;
-};
-export function ansokningarForAnvandare(userId: string): AnsokanRad[] {
-  return db()
-    .prepare(
-      `SELECT a.id, a.status, o.foretag, o.titel, o.emoji, o.typ
-       FROM applications a JOIN opportunities o ON o.id = a.opportunity_id
-       WHERE a.user_id = ? ORDER BY a.skapad DESC`,
-    )
-    .all(userId) as AnsokanRad[];
+export type AnsokanRad = { id: string; status: string; foretag: string; titel: string; emoji: string; typ: TypNyckel };
+export async function ansokningarForAnvandare(userId: string): Promise<AnsokanRad[]> {
+  await redo();
+  return (await all(
+    `SELECT a.id, a.status, o.foretag, o.titel, o.emoji, o.typ
+     FROM applications a JOIN opportunities o ON o.id = a.opportunity_id
+     WHERE a.user_id = ? ORDER BY a.skapad DESC`,
+    [userId],
+  )) as AnsokanRad[];
 }
-export function ansoktIder(userId: string): string[] {
-  return db()
-    .prepare("SELECT opportunity_id FROM applications WHERE user_id = ?")
-    .all(userId)
-    .map((r) => r.opportunity_id as string);
+export async function ansoktIder(userId: string): Promise<string[]> {
+  await redo();
+  return (await all("SELECT opportunity_id FROM applications WHERE user_id = ?", [userId])).map(
+    (r) => r.opportunity_id as string,
+  );
 }
 
-export type SokandeRad = {
-  namn: string | null;
-  ort: string | null;
-  alder: number | null;
-  titel: string;
-  status: string;
-};
-export function sokandeForAgare(agareId: string): SokandeRad[] {
-  return db()
-    .prepare(
-      `SELECT u.namn, u.ort, u.alder, o.titel, a.status
-       FROM applications a
-       JOIN opportunities o ON o.id = a.opportunity_id
-       JOIN users u ON u.id = a.user_id
-       WHERE o.agare_id = ? ORDER BY a.skapad DESC`,
-    )
-    .all(agareId) as SokandeRad[];
+export type SokandeRad = { namn: string | null; ort: string | null; alder: number | null; titel: string; status: string };
+export async function sokandeForAgare(agareId: string): Promise<SokandeRad[]> {
+  await redo();
+  return (await all(
+    `SELECT u.namn, u.ort, u.alder, o.titel, a.status
+     FROM applications a
+     JOIN opportunities o ON o.id = a.opportunity_id
+     JOIN users u ON u.id = a.user_id
+     WHERE o.agare_id = ? ORDER BY a.skapad DESC`,
+    [agareId],
+  )) as SokandeRad[];
 }

@@ -11,8 +11,8 @@ export const dynamic = "force-dynamic";
 
 export default async function FlodeSida() {
   const u = await nuvarandeAnvandare();
-  const mojligheter = allaMojligheter();
-  const ansokta = u ? ansoktIder(u.id) : [];
+  const mojligheter = await allaMojligheter();
+  const ansokta = u ? await ansoktIder(u.id) : [];
 
   return (
     <main className="flex-1 bg-bg">

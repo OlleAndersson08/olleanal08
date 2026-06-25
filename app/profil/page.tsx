@@ -40,7 +40,7 @@ export default async function Profil() {
     );
   }
 
-  const ansokningar = ansokningarForAnvandare(u.id);
+  const ansokningar = await ansokningarForAnvandare(u.id);
   const visningsnamn = u.namn || u.email.split("@")[0];
   const statistik = [
     { tal: `${ansokningar.length}`, text: "Ansökningar" },

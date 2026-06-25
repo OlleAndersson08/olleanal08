@@ -7,6 +7,6 @@ import { allaMojligheter } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-export default function Utforska() {
-  return <UtforskaKlient mojligheter={allaMojligheter()} />;
+export default async function Utforska() {
+  return <UtforskaKlient mojligheter={await allaMojligheter()} />;
 }

@@ -23,9 +23,9 @@ export async function registreraAction(_prev: FormState, formData: FormData): Pr
 
   if (!email || !email.includes("@")) return { error: "Fyll i en giltig e-post." };
   if (losen.length < 6) return { error: "Lösenordet måste vara minst 6 tecken." };
-  if (anvandareViaEmail(email)) return { error: "Det finns redan ett konto med den e-posten." };
+  if (await anvandareViaEmail(email)) return { error: "Det finns redan ett konto med den e-posten." };
 
-  const id = skapaAnvandare({
+  const id = await skapaAnvandare({
     email,
     losen: hashaLosen(losen),
     roll: roll === "foretag" ? "foretag" : "ungdom",
@@ -41,7 +41,7 @@ export async function registreraAction(_prev: FormState, formData: FormData): Pr
 export async function loggaInAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const losen = String(formData.get("losen") ?? "");
-  const u = anvandareViaEmail(email);
+  const u = await anvandareViaEmail(email);
   if (!u || !verifieraLosen(losen, u.losen)) return { error: "Fel e-post eller lösenord." };
   await startaSession(u.id);
   redirect(u.roll === "foretag" ? "/foretag" : "/jobb");
@@ -57,7 +57,7 @@ export async function loggaUtAction() {
 export async function ansokAction(opportunityId: string): Promise<{ ok: boolean; needsAuth?: boolean }> {
   const u = await nuvarandeAnvandare();
   if (!u) return { ok: false, needsAuth: true };
-  skapaAnsokan(u.id, opportunityId);
+  await skapaAnsokan(u.id, opportunityId);
   revalidatePath("/profil");
   return { ok: true };
 }
@@ -74,7 +74,7 @@ export async function skapaMojlighetAction(_prev: FormState, formData: FormData)
   const typ = String(formData.get("typ") ?? "extra") as TypNyckel;
   if (!titel || !beskrivning) return { error: "Fyll i titel och beskrivning." };
 
-  skapaMojlighet({
+  await skapaMojlighet({
     typ,
     foretag: u.foretag ?? "Företag",
     titel,
