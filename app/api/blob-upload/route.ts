@@ -16,8 +16,9 @@ export async function POST(req: Request): Promise<Response> {
       body,
       request: req,
       onBeforeGenerateToken: async () => ({
-        allowedContentTypes: ["video/mp4", "video/quicktime", "video/webm"],
+        allowedContentTypes: ["video/mp4", "video/quicktime", "video/webm", "video/x-m4v"],
         maximumSizeInBytes: 100 * 1024 * 1024, // 100 MB
+        addRandomSuffix: true,
       }),
       onUploadCompleted: async () => {
         /* inget extra behövs här */
