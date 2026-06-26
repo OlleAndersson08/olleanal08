@@ -81,7 +81,6 @@ export const mojligheter: Mojlighet[] = [
     match: 96,
     gillar: 1284,
     tittarNu: 12,
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
   },
   {
     id: "ica-helg",
