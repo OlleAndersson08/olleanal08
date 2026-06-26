@@ -30,6 +30,9 @@ export default async function Foretag() {
             <Link href="/logga-in" className="glas rounded-2xl px-6 py-4 font-semibold transition hover:bg-white/10">
               Logga in
             </Link>
+            <Link href="/om" className="text-sm font-semibold text-mute transition hover:text-text">
+              Läs vår story →
+            </Link>
             <Link href="/" className="text-sm font-semibold text-mute transition hover:text-text">
               ← Till startsidan
             </Link>
@@ -76,6 +79,14 @@ export default async function Foretag() {
             </div>
           ))}
         </div>
+
+        {/* Värvningsaffisch */}
+        <Link
+          href="/affisch"
+          className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 py-3 text-sm font-semibold text-mute transition hover:text-text"
+        >
+          📄 Skriv ut en QR-affisch att sätta upp i butiken
+        </Link>
 
         {/* Annonser */}
         <h2 className="mt-7 text-lg font-bold">Dina annonser</h2>

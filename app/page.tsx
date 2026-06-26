@@ -102,6 +102,11 @@ export default function Startsida() {
             ))}
           </div>
         </div>
+        <div className="mt-5 flex items-center justify-center gap-5 text-sm text-mute">
+          <Link href="/om" className="hover:text-text">Om oss</Link>
+          <span className="opacity-30">·</span>
+          <Link href="/foretag" className="hover:text-text">För företag</Link>
+        </div>
       </div>
     </main>
   );
