@@ -221,7 +221,7 @@ export async function raderaSession(token: string) {
 /* ---------- Möjligheter ---------- */
 export async function allaMojligheter(): Promise<DbMojlighet[]> {
   await redo();
-  return (await all("SELECT * FROM opportunities ORDER BY skapad DESC")).map(radTillMojlighet);
+  return (await all("SELECT * FROM opportunities ORDER BY skapad DESC, match DESC")).map(radTillMojlighet);
 }
 export async function mojligheterForAgare(agareId: string): Promise<DbMojlighet[]> {
   await redo();

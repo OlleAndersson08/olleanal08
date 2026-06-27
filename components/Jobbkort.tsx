@@ -225,6 +225,12 @@ export default function Jobbkort({
             "❤️ Jag är intresserad"
           )}
         </button>
+
+        {intresserad && (
+          <p className="mt-2 text-center text-xs font-medium text-white/90 text-skugga-mjuk">
+            🔔 Företaget hör av sig – håll koll i din profil.
+          </p>
+        )}
       </div>
     </section>
   );
