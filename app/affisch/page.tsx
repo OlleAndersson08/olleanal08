@@ -29,7 +29,7 @@ export default function Affisch() {
           >
             ☀
           </span>
-          SommarMatch
+          Knega
         </div>
 
         <span className="mt-7 inline-block rounded-full bg-zinc-900 px-4 py-1.5 text-sm font-bold text-white">
@@ -80,7 +80,7 @@ export default function Affisch() {
           <p className="font-semibold text-zinc-700">Frågor? Hör av dig:</p>
           <p className="mt-2">Namn: ______________________</p>
           <p className="mt-2">Telefon / e-post: ______________________</p>
-          <p className="mt-5 text-xs text-zinc-400">SommarMatch · byggt i Sverige för unga 15–25</p>
+          <p className="mt-5 text-xs text-zinc-400">Knega · byggt i Sverige för unga 15–25</p>
         </div>
       </div>
     </main>

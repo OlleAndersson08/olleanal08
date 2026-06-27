@@ -79,9 +79,9 @@ export default function Jobbkort({
     sistaTryck.current = nu;
   }
   function dela() {
-    const text = `${jobb.titel} hos ${jobb.foretag} på SommarMatch`;
+    const text = `${jobb.titel} hos ${jobb.foretag} på Knega`;
     if (typeof navigator !== "undefined" && navigator.share) {
-      navigator.share({ title: "SommarMatch", text }).catch(() => {});
+      navigator.share({ title: "Knega", text }).catch(() => {});
     }
   }
 

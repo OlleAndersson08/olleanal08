@@ -4,7 +4,7 @@ import { ImageResponse } from "next/og";
   Branded länk-förhandsvisning (visas när länken delas i sms, sociala medier osv).
 */
 
-export const alt = "SommarMatch – Tjäna pengar. Bygg din framtid.";
+export const alt = "Knega – Tjäna pengar. Bygg din framtid.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -53,7 +53,7 @@ export default function Image() {
             ☀
           </div>
           <div style={{ display: "flex", fontSize: 34, fontWeight: 800, color: "#f5f5f8" }}>
-            SommarMatch
+            Knega
           </div>
         </div>
 

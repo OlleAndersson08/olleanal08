@@ -34,8 +34,8 @@ export default function JobbFlode({
 
   function delaAppen() {
     const data = {
-      title: "SommarMatch",
-      text: "Kolla in SommarMatch – svep dig till ett sommarjobb! 🔥",
+      title: "Knega",
+      text: "Kolla in Knega – svep dig till ett jobb! 🔥",
     };
     if (typeof navigator !== "undefined" && navigator.share) {
       navigator.share(data).catch(() => {});

@@ -28,7 +28,7 @@ export default function AffischQR() {
     <div className="flex flex-col items-center">
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt="QR-kod till SommarMatch" className="h-56 w-56 sm:h-64 sm:w-64" />
+        <img src={src} alt="QR-kod till Knega" className="h-56 w-56 sm:h-64 sm:w-64" />
       ) : (
         <div className="flex h-56 w-56 items-center justify-center rounded-2xl bg-zinc-100 text-sm text-zinc-400">
           Skapar QR ...

@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SommarMatch – Tjäna pengar. Bygg din framtid.",
+  title: "Knega – Tjäna pengar. Bygg din framtid.",
   description:
     "Sveriges plattform för unga 15–25. Sommarjobb, extrajobb, gig och praktik – allt på ett ställe. Svep, matcha, sök på en sekund.",
 };

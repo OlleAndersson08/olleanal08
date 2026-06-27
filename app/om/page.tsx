@@ -6,7 +6,7 @@ import Link from "next/link";
 */
 
 export const metadata = {
-  title: "Om SommarMatch – byggt av unga, för unga",
+  title: "Om Knega – byggt av unga, för unga",
 };
 
 const trygghet = [
@@ -53,7 +53,7 @@ export default function Om() {
             bygga bron själv.
           </p>
           <p className="font-semibold text-text">
-            SommarMatch gör att unga hittar jobb genom att svepa – lika enkelt som att scrolla på
+            Knega gör att unga hittar jobb genom att svepa – lika enkelt som att scrolla på
             mobilen – och att företag kan lägga upp en tjänst på två minuter, gärna med en kort video.
           </p>
         </div>

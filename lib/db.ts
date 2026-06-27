@@ -44,7 +44,7 @@ function pgPool() {
 
 function sqliteDb() {
   if (!g._smSqlite) {
-    const sokvag = process.env.DATABASE_PATH || (process.env.VERCEL ? "/tmp/sommarmatch.db" : "./.data/sommarmatch.db");
+    const sokvag = process.env.DATABASE_PATH || (process.env.VERCEL ? "/tmp/knega.db" : "./.data/knega.db");
     if (sokvag !== ":memory:" && sokvag.includes("/")) {
       const dir = dirname(sokvag);
       if (dir && !existsSync(dir)) mkdirSync(dir, { recursive: true });

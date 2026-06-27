@@ -27,7 +27,7 @@ export default function Startsida() {
               <span className="absolute inline-flex h-full w-full rounded-full bg-frisk opacity-70 [animation:pulse-ring_2s_ease-out_infinite]" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-frisk" />
             </span>
-            Sommar<span className="text-brand">Match</span>
+            <span className="text-brand">Knega</span>
           </span>
           <Link href="/logga-in" className="glas rounded-full px-4 py-2 text-sm font-semibold text-text transition hover:bg-white/10">
             Logga in
