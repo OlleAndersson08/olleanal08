@@ -10,12 +10,12 @@ gratis att börja och funkar precis som databasen du redan kopplat.
 
 ## Steg 1 – Skapa en Blob-store i Vercel
 
-1. Gå till **vercel.com** och klicka in på ditt projekt **olleanal08**.
+1. Gå till **vercel.com** och klicka in på ditt projekt **olleanol08**.
 2. Klicka på fliken **"Storage"** högst upp.
 3. Klicka **"Create Database"** (eller "Create").
 4. Välj **"Blob"**.
 5. Klicka **"Create"** / **"Continue"** och bekräfta att den kopplas till
-   projektet **olleanal08**.
+   projektet **olleanol08**.
 
 Det lägger automatiskt in nyckeln `BLOB_READ_WRITE_TOKEN` åt dig – du behöver
 inte skriva något själv.

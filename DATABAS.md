@@ -15,7 +15,7 @@ gratis och tar ungefär 5 minuter. Följ stegen exakt.
 
 ## Steg 2 – Klistra in länken i Vercel
 
-1. Gå till **vercel.com** och öppna ditt projekt **olleanal08**.
+1. Gå till **vercel.com** och öppna ditt projekt **olleanol08**.
 2. Klicka på fliken **"Settings"** högst upp.
 3. Klicka på **"Environment Variables"** i menyn till vänster.
 4. I fältet **"Key"** skriver du exakt: `DATABASE_URL`
