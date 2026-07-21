@@ -70,6 +70,19 @@ export default function Vax() {
           <span className="text-mute">→</span>
         </Link>
 
+        {/* Studio – AI-bildredigerare */}
+        <Link
+          href="/redigera"
+          className="mt-3 flex items-center gap-3 rounded-3xl border border-white/10 p-4 transition hover:brightness-110 bg-brand-soft"
+        >
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-2xl">🎨</span>
+          <div className="flex-1">
+            <p className="font-bold">Redigera bilder i Studio</p>
+            <p className="text-sm text-mute">Berätta hur du vill ha bilden – Vibe fixar stämningen.</p>
+          </div>
+          <span className="text-mute">→</span>
+        </Link>
+
         {/* Lektionsstig */}
         <h2 className="mt-6 text-lg font-bold">Din stig</h2>
         <div className="mt-3 flex flex-col gap-3">
